@@ -1,6 +1,8 @@
 package com.library.platform.upc.iam.interfaces;
 
 
+import com.library.platform.upc.iam.domain.model.aggregates.User;
+import com.library.platform.upc.iam.domain.model.commands.SignUpCommand;
 import com.library.platform.upc.iam.domain.services.UserCommandService;
 import com.library.platform.upc.iam.interfaces.rest.resources.AuthenticatedUserResource;
 import com.library.platform.upc.iam.interfaces.rest.resources.SignInResource;
@@ -11,6 +13,7 @@ import com.library.platform.upc.iam.interfaces.rest.transform.SignInCommandFromR
 import com.library.platform.upc.iam.interfaces.rest.transform.SignUpCommandFromResourceAssembler;
 import com.library.platform.upc.iam.interfaces.rest.transform.UserResourceFromEntityAssembler;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -18,6 +21,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import java.util.Optional;
 
 /**
  * AuthenticationController
@@ -46,9 +51,17 @@ public class AuthenticationController {
      * @return the authenticated user resource.
      */
     @PostMapping("/sign-in")
-    public ResponseEntity<AuthenticatedUserResource> signIn(@RequestBody SignInResource signInResource) {
+    public ResponseEntity<?> signIn(@RequestBody SignInResource signInResource) {
         var signInCommand = SignInCommandFromResourceAssembler.toCommandFromResource(signInResource);
-        var authenticatedUser = userCommandService.handle(signInCommand);
+        Optional<ImmutablePair<User, String>> authenticatedUser;
+        try {
+            authenticatedUser = userCommandService.handle(signInCommand);
+        } catch (Exception e){
+            return ResponseEntity
+                    .badRequest()
+                    .contentType(MediaType.TEXT_PLAIN)
+                    .body(e.getMessage());
+        }
         if (authenticatedUser.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
@@ -62,11 +75,29 @@ public class AuthenticationController {
      * @return the created user resource.
      */
     @PostMapping("/sign-up")
-    public ResponseEntity<UserResource> signUp(@RequestBody SignUpResource signUpResource) {
-        var signUpCommand = SignUpCommandFromResourceAssembler.toCommandFromResource(signUpResource);
-        var user = userCommandService.handle(signUpCommand);
+    public ResponseEntity<?> signUp(@RequestBody SignUpResource signUpResource) {
+        SignUpCommand signUpCommand;
+        try{
+            signUpCommand = SignUpCommandFromResourceAssembler.toCommandFromResource(signUpResource);
+        }
+        catch (Exception e){
+            return ResponseEntity
+                    .badRequest()
+                    .contentType(MediaType.TEXT_PLAIN)
+                    .body(e.getMessage());
+        }
+
+        Optional<User> user;
+        try {
+            user = userCommandService.handle(signUpCommand);
+        } catch (Exception e){
+            return ResponseEntity
+                    .badRequest()
+                    .contentType(MediaType.TEXT_PLAIN)
+                    .body(e.getMessage());
+        }
         if (user.isEmpty()) {
-            return ResponseEntity.badRequest().build();
+            return ResponseEntity.notFound().build();
         }
         var userResource = UserResourceFromEntityAssembler.toResourceFromEntity(user.get());
         return new ResponseEntity<>(userResource, HttpStatus.CREATED);

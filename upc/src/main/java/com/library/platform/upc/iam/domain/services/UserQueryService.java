@@ -13,5 +13,4 @@ public interface UserQueryService {
     List<User> handle(GetAllUsersQuery query);
     Optional<User> handle(GetUserByIdQuery query);
     Optional<User> handle(GetUserByUsernameQuery query);
-
 }
