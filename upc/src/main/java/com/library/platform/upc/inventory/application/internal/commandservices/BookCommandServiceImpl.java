@@ -1,6 +1,7 @@
 package com.library.platform.upc.inventory.application.internal.commandservices;
 
 import com.library.platform.upc.inventory.domain.exceptions.GenreNotFoundException;
+import com.library.platform.upc.inventory.domain.exceptions.SameIsbnException;
 import com.library.platform.upc.inventory.domain.model.aggregates.Book;
 import com.library.platform.upc.inventory.domain.model.commands.CreateBookCommand;
 import com.library.platform.upc.inventory.domain.model.commands.UpdateBookCommand;
@@ -31,6 +32,10 @@ public class BookCommandServiceImpl implements BookCommandService {
     public Long handle(CreateBookCommand command) {
         var genre = genreRepository.findById(command.genreId());
         if (genre.isEmpty()) { throw new GenreNotFoundException(command.genreId()); }
+
+        var sameIsbn = bookRepository.findByIsbn(command.isbn());
+        if (sameIsbn.isPresent()) { throw new SameIsbnException(command.isbn()); }
+
         Book book = new Book(command, genre.get());
         try {
             bookRepository.save(book);

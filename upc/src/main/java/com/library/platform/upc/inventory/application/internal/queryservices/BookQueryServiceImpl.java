@@ -3,6 +3,7 @@ package com.library.platform.upc.inventory.application.internal.queryservices;
 import com.library.platform.upc.inventory.domain.model.aggregates.Book;
 import com.library.platform.upc.inventory.domain.model.queries.GetAllBooksQuery;
 import com.library.platform.upc.inventory.domain.model.queries.GetBookByIdQuery;
+import com.library.platform.upc.inventory.domain.model.queries.GetBookByIsbnQuery;
 import com.library.platform.upc.inventory.domain.services.BookQueryService;
 import com.library.platform.upc.inventory.infrastructure.persistence.jpa.repositories.BookRepository;
 import org.springframework.stereotype.Service;
@@ -27,4 +28,11 @@ public class BookQueryServiceImpl implements BookQueryService {
     public List<Book> handle(GetAllBooksQuery query) {
         return bookRepository.findAll();
     }
+
+    @Override
+    public Optional<Book> handle(GetBookByIsbnQuery query) {
+        return bookRepository.findByIsbn(query.isbn());
+    }
+
+
 }
