@@ -1,7 +1,7 @@
 package com.library.platform.upc.iam.domain.model.valueobjects;
 
 public enum Roles {
-    ADMIN,
-    MEMBER,
-    LIBRARIAN
+    ROLE_ADMIN,
+    ROLE_MEMBER,
+    ROLE_LIBRARIAN
 }

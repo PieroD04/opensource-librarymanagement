@@ -17,6 +17,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -35,7 +36,7 @@ public class BooksController {
         this.bookCommandService = bookCommandService;
         this.bookQueryService = bookQueryService;
     }
-
+    @PreAuthorize("hasRole('ADMIN') or hasRole('LIBRARIAN') or hasRole('MEMBER')")
     @GetMapping
     public ResponseEntity<List<BookResource>> getAllBooks(){
         var getAllBooksQuery = new GetAllBooksQuery();
@@ -46,6 +47,7 @@ public class BooksController {
         return ResponseEntity.ok(bookResources);
     }
 
+    @PreAuthorize("hasRole('ADMIN') or hasRole('LIBRARIAN')")
     @PostMapping
     public ResponseEntity<?> createBook(@Valid @RequestBody CreateBookResource createBookResource){
         var createBookCommand = CreateBookCommandFromResourceAssembler.toCommandFromResource(createBookResource);
@@ -69,6 +71,7 @@ public class BooksController {
         return new ResponseEntity<>(bookResource, HttpStatus.CREATED);
     }
 
+    @PreAuthorize("hasRole('ADMIN') or hasRole('LIBRARIAN')")
     @PutMapping("/{bookId}")
     public ResponseEntity<?> updateBook(@PathVariable Long bookId, @Valid @RequestBody UpdateBookResource updateBookResource){
         var updateBookCommand = UpdateBookCommandFromResourceAssembler.toCommandFromResource(bookId, updateBookResource);
